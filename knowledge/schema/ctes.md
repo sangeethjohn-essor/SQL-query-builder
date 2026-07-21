@@ -50,10 +50,10 @@ Reusable and domain-specific CTE layers. Copy lookup CTEs from [rules/lookups.md
 |-----|---------|
 | OUTBOUND_BASE | Raw Argents outbound fields + vendor/warehouse/shipment derivation |
 | OUTBOUND_CLASSIFIED | SKU join + ORDER_TYPE classifier |
-| outbound_data | Project NetSuite IA header/line fields (outbound) |
+| outbound_data | Project NetSuite IA header/line fields + `"order_type"` (outbound) |
 | INBOUND_BASE | Raw Argents inbound fields |
 | INBOUND_CLASSIFIED | SKU join + inbound ORDER_TYPE from ASN |
-| inbound_data | Project NetSuite IA header/line fields (inbound) |
+| inbound_data | Project NetSuite IA header/line fields + `"order_type"` (inbound) |
 | combined_adjustments | UNION ALL outbound + inbound |
 
 ## CTE ordering convention

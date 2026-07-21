@@ -52,12 +52,85 @@ END AS ORDER_TYPE
 
 ```sql
 CASE
-    WHEN LOWER(SC_ASNNUMBER) LIKE '%work order%' THEN 'work_order'
-    WHEN LOWER(SC_ASNNUMBER) LIKE '%sample%' THEN 'samples'
-    WHEN LOWER(SC_ASNNUMBER) LIKE '%disposal%' THEN 'disposal'
+    WHEN SC_ASNNUMBER ILIKE '%RMA%' THEN 'return'
+    WHEN SC_ASNNUMBER ILIKE 'CANCELLED%' THEN 'cancelled'
+    WHEN SC_ASNNUMBER ILIKE '%MAILER%' THEN 'components'
+    WHEN SC_ASNNUMBER ILIKE '%WORKORDER%'
+      OR SC_ASNNUMBER ILIKE '%BUNDLE%'
+      OR SC_ASNNUMBER ILIKE 'CON%' THEN 'work_order'
+    ELSE NULL
+END AS ORDER_TYPE
+```
+
+### argents_inbound_order_type (deprecated)
+
+<!-- deprecated: superseded by ASN ILIKE patterns above (2026-07-21 sync) -->
+
+- **seen_in:** inventory-adjustments-argents.sql (earlier seed)
+- Prior classifier used `%work order%`, `%sample%`, `%disposal%` on ASN text.
+
+## ylc_outbound_order_type
+
+- **seen_in:** transfer-order-argents-ylc.sql (SC_DATA_RAW_YLC_BASE)
+- **source:** FACT_FINANCE_YLC_OUTBOUND_SHIPMENT
+
+```sql
+CASE
+    WHEN NODE_SOURCE ILIKE 'SHOPIFY'
+        OR NODE_ORDER_NUMBER ILIKE 'SO%'
+        THEN 'sales_order'
+    WHEN NODE_SOURCE ILIKE 'AMAZON'
+        OR NODE_SHIPPING_ADDRESS_FIRST_NAME ILIKE '%AMAZON%'
+        THEN 'fba'
+    WHEN NODE_ORDER_NUMBER ILIKE '%SAMPLE%'
+        OR NODE_ORDER_NUMBER ILIKE '%PERSONAL%'
+        THEN 'samples'
+    WHEN NODE_SHIPPING_ADDRESS_FIRST_NAME ILIKE '%DISPOSAL%'
+        THEN 'disposal'
+    WHEN NODE_SHIPPING_ADDRESS_FIRST_NAME ILIKE '%DONATION%'
+        AND NODE_SHIPPING_ADDRESS_LAST_NAME ILIKE '%DONATION%'
+        THEN 'donation'
+    WHEN NODE_SHIPPING_ADDRESS_FIRST_NAME ILIKE '%TIKTOK%'
+        THEN 'tiktok'
+    WHEN NODE_SHIPPING_ADDRESS_FIRST_NAME ILIKE '%UNIS%'
+        OR NODE_SHIPPING_ADDRESS_FIRST_NAME ILIKE '%DALLAS ONE SOLUTIONS%'
+        OR NODE_SHIPPING_ADDRESS_LAST_NAME ILIKE '%DALLAS ONE SOLUTIONS%'
+        THEN '3pl_3pl'
+    WHEN NODE_SHIPPING_ADDRESS_FIRST_NAME ILIKE '%WALMART%'
+        THEN 'walmart'
+    WHEN REGEXP_LIKE(NODE_SHIPPING_ADDRESS_FIRST_NAME, '^(LTL_)?[A-Z]{3}[0-9]$')
+        OR REGEXP_LIKE(NODE_SHIPPING_ADDRESS_LAST_NAME, '^(LTL_)?[A-Z]{3}[0-9]$')
+        THEN 'fba'
+    WHEN NODE_SHIPPING_ADDRESS_FIRST_NAME ILIKE 'The Container Store'
+        OR NODE_SHIPPING_ADDRESS_FIRST_NAME ILIKE 'HomeGoods'
+        OR NODE_SHIPPING_ADDRESS_FIRST_NAME ILIKE 'World Market Management Services LLC'
+        OR NODE_SHIPPING_ADDRESS_FIRST_NAME ILIKE 'World Market Management Services, LLC'
+        OR NODE_SHIPPING_ADDRESS_FIRST_NAME ILIKE 'The Paper Store'
+        OR TRIM(NODE_SHIPPING_ADDRESS_FIRST_NAME) ILIKE 'Uncommon Goods LLC'
+        OR NODE_SHIPPING_ADDRESS_FIRST_NAME ILIKE 'Uncommon Goods'
+        OR NODE_ORDER_NUMBER ILIKE 'B2B%'
+        THEN 'sales_order'
+    WHEN ZEROIFNULL(LINE_ITEM_QUANTITY_SHIPPED) <= 5 THEN 'samples'
     ELSE 'unidentified'
 END AS ORDER_TYPE
 ```
+
+## ia_order_type_inclusion_filter
+
+- **seen_in:** inventory-adjustments-argents.sql
+- **purpose:** Limit IA output to adjustable order types
+- **requires:** Project `ORDER_TYPE` as `"order_type"` in `outbound_data` and `inbound_data` before filtering
+
+```sql
+-- In outbound_data / inbound_data projection:
+ob.ORDER_TYPE AS "order_type"
+
+-- Final SELECT:
+SELECT * FROM combined_adjustments
+WHERE "order_type" IN ('work_order', 'samples', 'disposal')
+```
+
+<!-- Golden reference uses unquoted ORDER_TYPE in final WHERE; prefer quoted "order_type" to match projected alias -->
 
 ## transfer_order_filter
 

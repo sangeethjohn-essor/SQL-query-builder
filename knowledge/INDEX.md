@@ -6,7 +6,7 @@ Route the Agent to the right files for each task.
 |------|------------------|
 | **Sync new reference query** | All `schema/*`, all `rules/*`, `conventions.md`; update `CHANGELOG.md` |
 | **Generate IA Argents** | `rules/lookups.md`, `rules/mappings.md`, `rules/classifiers.md`, `rules/constants.md`, `rules/projections.md`, `schema/tables.md`, `schema/joins.md`, `conventions.md`, `queries/reference/inventory-adjustments-argents.sql` |
-| **Generate Transfer Order (Argents/YLC)** | All rules + schema files, `queries/reference/transfer-order-argents-ylc.sql` |
+| **Generate Transfer Order (Argents/YLC)** | `rules/lookups.md` (incl. TO enrichment CTEs), all rules + schema files, `queries/reference/transfer-order-argents-ylc.sql` |
 | **Resolve XLSX field mapping** | Requirements MD/XLSX + `rules/projections.md` + `conventions.md` |
 
 ## File purposes

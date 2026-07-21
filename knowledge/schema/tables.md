@@ -42,8 +42,8 @@ Physical and staging tables referenced in reference queries.
 
 - **seen_in:** transfer-order-argents-ylc.sql, inventory-adjustments-argents.sql
 - **purpose:** Argents outbound shipment line items
-- **key_columns:** pk, id, shippeddate, channelname, source, vendor, warehouse, externalid, lineitemsku, lineitemquantity, shippingaddresscountrytwolettercode, shippingaddressfirstname, shippingaddresslastname, shippingstatus, created
-- **filters_used:** SHIPPINGSTATUS IN ('PartiallyShipped', 'Shipped'); ZEROIFNULL(LINEITEMQUANTITY) > 0; date filters vary by use case
+- **key_columns:** pk, id, ID, shippeddate, channelname, source, vendor, warehouse, externalid, lineitemsku, lineitemquantity, shippingaddresscountrytwolettercode, shippingaddressfirstname, shippingaddresslastname, shippingaddressname, billingaddressname, billingaddressfirstname, billingaddresslastname, billingaddresscountrytwolettercode, shippingstatus, created
+- **filters_used:** SHIPPINGSTATUS IN ('PartiallyShipped', 'Shipped'); ZEROIFNULL(LINEITEMQUANTITY) > 0; TO query also filters `TO_DATE(CREATED) >= '2026-01-01'`
 
 ## DWH.PROD.FACT_FINANCE_ARGENTS_INBOUND_SHIPMENT
 

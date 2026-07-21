@@ -42,3 +42,5 @@ When requirements text conflicts with a golden reference query, **prefer the gol
 - NetSuite API fields use **quoted lowercase/snake aliases**: `"unique_id"`, `"Department_id"`
 - Header and line dimensions duplicated at line level (`line_*` fields)
 - Outbound and inbound combined via `UNION ALL`
+- Project `"order_type"` in `outbound_data` / `inbound_data` when filtering adjustable rows on the final SELECT
+- Inbound classifier produces mostly `work_order`, `return`, `cancelled`, `components`, or NULL — only outbound rows typically match `samples` / `disposal` in the inclusion filter

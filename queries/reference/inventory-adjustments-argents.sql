@@ -167,11 +167,12 @@ outbound_data AS (
         CONCAT(ob.SC_SHIPMENT_ID, ' // ', ob.RAW_ID) AS "memo",
         TO_DATE(ob.SC_SHIPPEDDATE) AS "date",
         sub.SUBSIDIARY_INT_ID AS "subsidiary_internal_id",
+        ob.ORDER_TYPE AS "order_type",
         CASE
             WHEN ob.ORDER_TYPE = 'work_order' THEN 1693
             WHEN ob.ORDER_TYPE = 'samples' THEN 3323
             WHEN ob.ORDER_TYPE = 'disposal' THEN 2872
-            ELSE 1693
+            ELSE NULL
         END AS "account_id",
         loc.LOCATION_INT_ID AS "location_internal_id",
         12 AS "Department_id",
@@ -192,8 +193,8 @@ outbound_data AS (
         ON UPPER(CONCAT(ob.SC_WAREHOUSE, '-US-', ob.SC_SUBSIDIARY_SHORT)) = UPPER(loc.LOCATION_NAME)
     LEFT JOIN NS_GEOGRAPHIES geo
         ON UPPER(ob.SC_SHIPPINGADDRESSCOUNTRYTWOLETTERCODE) = UPPER(geo.GEOGRAPHY_ISO_CODE)
-    WHERE TO_DATE(ob.SC_SHIPPEDDATE) >= TO_DATE('2026-05-01')
-      AND TO_DATE(ob.SC_SHIPPEDDATE) <= TO_DATE('2026-05-31')
+    WHERE TO_DATE(ob.SC_SHIPPEDDATE) >= TO_DATE('2026-04-01')
+      AND TO_DATE(ob.SC_SHIPPEDDATE) <= TO_DATE('2026-04-30')
 ),
 INBOUND_BASE AS (
     SELECT
@@ -227,10 +228,13 @@ INBOUND_CLASSIFIED AS (
         COALESCE(NS_ITEMS_SKU.SKU, NS_ITEMS_ALIAS_SKU.SKU) AS ITEM_NUMBER,
         COALESCE(NS_ITEMS_SKU.ITEM_ID, NS_ITEMS_ALIAS_SKU.ITEM_ID) AS ITEM_ID,
         CASE
-            WHEN LOWER(ib.SC_ASNNUMBER) LIKE '%work order%' THEN 'work_order'
-            WHEN LOWER(ib.SC_ASNNUMBER) LIKE '%sample%' THEN 'samples'
-            WHEN LOWER(ib.SC_ASNNUMBER) LIKE '%disposal%' THEN 'disposal'
-            ELSE 'unidentified'
+               WHEN SC_ASNNUMBER ILIKE '%RMA%' THEN 'return'
+               WHEN SC_ASNNUMBER ILIKE 'CANCELLED%' THEN 'cancelled'
+               WHEN SC_ASNNUMBER ILIKE '%MAILER%' THEN 'components'
+               WHEN SC_ASNNUMBER ILIKE '%WORKORDER%'
+                 OR SC_ASNNUMBER ILIKE '%BUNDLE%'
+                 OR SC_ASNNUMBER ILIKE 'CON%' THEN 'work_order'
+               ELSE NULL
         END AS ORDER_TYPE
     FROM INBOUND_BASE ib
     LEFT JOIN NS_ITEMS_SKU
@@ -245,11 +249,12 @@ inbound_data AS (
         CONCAT(ib.SC_ASNNUMBER, ' // ', ib.RAW_ID) AS "memo",
         TO_DATE(ib.SC_RECEIVEDDATE) AS "date",
         sub.SUBSIDIARY_INT_ID AS "subsidiary_internal_id",
+        ib.ORDER_TYPE AS "order_type",
         CASE
             WHEN ib.ORDER_TYPE = 'work_order' THEN 1693
             WHEN ib.ORDER_TYPE = 'samples' THEN 3323
             WHEN ib.ORDER_TYPE = 'disposal' THEN 2872
-            ELSE 1693
+            ELSE NULL
         END AS "account_id",
         loc.LOCATION_INT_ID AS "location_internal_id",
         12 AS "Department_id",
@@ -271,11 +276,11 @@ inbound_data AS (
     LEFT JOIN NS_GEOGRAPHIES geo
         ON geo.GEOGRAPHY_ISO_CODE = 'US'
     WHERE TO_DATE(ib.SC_RECEIVEDDATE) >= TO_DATE('2026-04-01')
-      AND TO_DATE(ib.SC_RECEIVEDDATE) <= TO_DATE('2026-07-20')
+      AND TO_DATE(ib.SC_RECEIVEDDATE) <= TO_DATE('2026-04-30')
 ),
 combined_adjustments AS (
     SELECT * FROM outbound_data
     UNION ALL
     SELECT * FROM inbound_data
 )
-SELECT * FROM combined_adjustments;
+SELECT * FROM combined_adjustments WHERE ORDER_TYPE IN ('work_order', 'samples', 'disposal');

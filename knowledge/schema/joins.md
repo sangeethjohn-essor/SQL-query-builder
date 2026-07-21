@@ -127,6 +127,86 @@ LEFT JOIN MANUAL_3PL_IO
     ON UPPER(NODE_ORDER_NUMBER) = UPPER(OUTBOUND_REF)
 ```
 
+## from_subsidiary_by_name
+
+- **seen_in:** transfer-order-argents-ylc.sql
+- **purpose:** Resolve from-subsidiary internal ID for TO pipeline
+- **join:**
+
+```sql
+LEFT JOIN NS_SUBSIDIARIES AS FROM_SUBSIDIARY
+    ON UPPER(SC_SUBSIDIARY_NAME) = UPPER(FROM_SUBSIDIARY.SUBSIDIARY_NAME)
+```
+
+## from_location_argents_or_ylc
+
+- **seen_in:** transfer-order-argents-ylc.sql
+- **purpose:** Resolve from-location by 3PL (Argents warehouse key vs YLC key)
+- **join:**
+
+```sql
+LEFT JOIN NS_LOCATIONS AS FROM_LOCATIONS
+    ON UPPER(
+        CASE
+            WHEN NAME_3PL = 'ARGENTS'
+                THEN CONCAT(SC_WAREHOUSE, '-US-', SC_SUBSIDIARY_SHORT)
+            WHEN NAME_3PL = 'YLC'
+                THEN CONCAT('YLC-US-', SC_SUBSIDIARY_SHORT)
+        END
+    ) = UPPER(FROM_LOCATIONS.LOCATION_NAME)
+```
+
+## sales_channel_by_code
+
+- **seen_in:** transfer-order-argents-ylc.sql
+- **join:**
+
+```sql
+LEFT JOIN NS_SALES_CHANNEL
+    ON UPPER(SC_SALES_CHANNEL) = UPPER(SALES_CHANNEL_CODE)
+```
+
+## landed_cost_by_lct_key
+
+- **seen_in:** transfer-order-argents-ylc.sql
+- **join:**
+
+```sql
+LEFT JOIN NS_LANDED_COSTS
+    ON UPPER(LCT) = UPPER(LC_PROFILE_NAME)
+```
+
+## manual_location_by_firstname_and_order_type
+
+- **seen_in:** transfer-order-argents-ylc.sql
+- **join:**
+
+```sql
+LEFT JOIN MANUAL_LOCATION_MAPPING
+    ON UPPER(SC_SHIPPINGADDRESSFIRSTNAME) = UPPER(FINAL_LOCATION)
+    AND UPPER(ORDER_TYPE) = UPPER(WORKFLOW_MAPPING)
+```
+
+## placement_fee_by_shipment
+
+- **seen_in:** transfer-order-argents-ylc.sql
+- **join:**
+
+```sql
+LEFT JOIN PF_DATA AS PFV3
+    ON UPPER(SC_SHIPMENT_ID) = UPPER(PFV3.SHIPMENT_ID)
+```
+
+## fbt_shipment_by_id
+
+- **seen_in:** transfer-order-argents-ylc.sql
+- **join:**
+
+```sql
+LEFT JOIN FBT_SHIPMENTS
+    ON UPPER(BASE.SC_SHIPMENT_ID) = UPPER(FBT_SHIPMENTS.ID)
+```
+
 ## from_subsidiary_mapping_ylc
 
 - **seen_in:** transfer-order-argents-ylc.sql

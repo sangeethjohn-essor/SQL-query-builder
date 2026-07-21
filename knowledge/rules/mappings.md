@@ -53,16 +53,18 @@ END AS SC_SUBSIDIARY_SHORT
 | work_order | 1693 | 134000 Manual Adjustments |
 | samples | 3323 | 524500 Essor Samples |
 | disposal | 2872 | 518110 Other Disposals |
-| default | 1693 | fallback to work_order |
+| default | NULL | unmatched ORDER_TYPE |
 
 ```sql
 CASE
     WHEN ORDER_TYPE = 'work_order' THEN 1693
     WHEN ORDER_TYPE = 'samples' THEN 3323
     WHEN ORDER_TYPE = 'disposal' THEN 2872
-    ELSE 1693
+    ELSE NULL
 END AS account_id
 ```
+
+<!-- CONFLICT: earlier seed used ELSE 1693 as fallback; current golden uses ELSE NULL (2026-07-21) -->
 
 ## argents_external_id_cleanup
 

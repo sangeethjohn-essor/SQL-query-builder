@@ -26,15 +26,15 @@ Fixed NetSuite internal IDs used across use cases.
 ## ia_outbound_date_filter_default
 
 - **seen_in:** inventory-adjustments-argents.sql
-- **from:** 2026-05-01
-- **to:** 2026-05-31
+- **from:** 2026-04-01
+- **to:** 2026-04-30
 - **column:** SC_SHIPPEDDATE
 
 ## ia_inbound_date_filter_default
 
 - **seen_in:** inventory-adjustments-argents.sql
 - **from:** 2026-04-01
-- **to:** 2026-07-20
+- **to:** 2026-04-30
 - **column:** SC_RECEIVEDDATE
 
 ## to_date_filter_default

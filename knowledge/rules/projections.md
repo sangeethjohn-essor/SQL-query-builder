@@ -8,20 +8,23 @@ Output column shapes per use case.
 - **golden_reference:** queries/reference/inventory-adjustments-argents.sql
 - **source_tables:** FACT_FINANCE_ARGENTS_OUTBOUND_SHIPMENT, FACT_FINANCE_ARGENTS_INBOUND_SHIPMENT
 - **combine:** UNION ALL outbound_data + inbound_data
+- **table_aliases:** `ob` (outbound), `ib` (inbound) — avoid reserved word `out`
+- **inclusion_filter:** `"order_type" IN ('work_order', 'samples', 'disposal')` on final SELECT (column must be projected in `outbound_data` / `inbound_data`)
 
 ### Header fields
 
 | Target column | Level | SQL expression (outbound) | SQL expression (inbound) |
 |---------------|-------|---------------------------|--------------------------|
-| unique_id | Header | `out.SC_ID` | `ib.SC_ID` |
-| external_id | Header | `CONCAT(out.SC_ID, '-OUT')` | `CONCAT(ib.SC_ID, '-IN')` |
-| memo | Header | `CONCAT(out.SC_SHIPMENT_ID, ' // ', out.RAW_ID)` | `CONCAT(ib.SC_ASNNUMBER, ' // ', ib.RAW_ID)` |
-| date | Header | `TO_DATE(out.SC_SHIPPEDDATE)` | `TO_DATE(ib.SC_RECEIVEDDATE)` |
+| unique_id | Header | `ob.SC_ID` | `ib.SC_ID` |
+| external_id | Header | `CONCAT(ob.SC_ID, '-OUT')` | `CONCAT(ib.SC_ID, '-IN')` |
+| memo | Header | `CONCAT(ob.SC_SHIPMENT_ID, ' // ', ob.RAW_ID)` | `CONCAT(ib.SC_ASNNUMBER, ' // ', ib.RAW_ID)` |
+| date | Header | `TO_DATE(ob.SC_SHIPPEDDATE)` | `TO_DATE(ib.SC_RECEIVEDDATE)` |
 | subsidiary_internal_id | Header | `sub.SUBSIDIARY_INT_ID` | `sub.SUBSIDIARY_INT_ID` |
-| account_id | Header | CASE on ORDER_TYPE (see mappings.md) | CASE on ORDER_TYPE |
+| order_type | Header | `ob.ORDER_TYPE AS "order_type"` | `ib.ORDER_TYPE AS "order_type"` |
+| account_id | Header | CASE on ORDER_TYPE; ELSE NULL | CASE on ORDER_TYPE; ELSE NULL |
 | location_internal_id | Header | `loc.LOCATION_INT_ID` | `loc.LOCATION_INT_ID` |
 | Department_id | Header | `12` | `12` |
-| Class_id | Header | `LEFT(out.ITEM_NUMBER, 3)` | `LEFT(ib.ITEM_NUMBER, 3)` |
+| Class_id | Header | `LEFT(ob.ITEM_NUMBER, 3)` | `LEFT(ib.ITEM_NUMBER, 3)` |
 | sales_channel_id | Header | `1` | `1` |
 | geography_id | Header | `geo.GEOGRAPHY_INT_ID` (from shipping country) | `geo.GEOGRAPHY_INT_ID` (US fixed) |
 
